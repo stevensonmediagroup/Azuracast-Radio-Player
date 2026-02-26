@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0d0d0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="STATION-NAME-HERE" />
+  <meta name="description" content="STATION-DESCRIPTION" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="ICONLINKLOCATION.png" />
+  <title>KISS FM NS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --pink: #ff2d6b;
+      --pink-glow: rgba(255,45,107,0.35);
+      --dark: #0d0d0d;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --text: #f5f5f5;
+      --muted: #888;
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -20%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(ellipse at center, rgba(255,45,107,0.18) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+      padding-top: 24px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    .logo img {
+      height: 44px;
+      width: auto;
+      display: block;
+    }
+
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface);
+      border: 1px solid rgba(255,45,107,0.3);
+      padding: 6px 12px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      transition: all 0.3s ease;
+    }
+
+    .live-badge.on-air {
+      color: var(--pink);
+      border-color: var(--pink);
+      background: rgba(255,45,107,0.08);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s;
+    }
+
+    .live-badge.on-air .live-dot {
+      background: var(--pink);
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.7); }
+    }
+
+    .art-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 28px;
+      background: var(--surface);
+      box-shadow: 0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04);
+    }
+
+    .art-wrapper::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.06);
+      pointer-events: none;
+    }
+
+    #album-art {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.5s ease;
+    }
+
+    .art-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 28px 20px 20px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.85));
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+
+    .now-playing-label {
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--pink);
+      margin-bottom: 4px;
+    }
+
+    #track-title {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.6rem;
+      letter-spacing: 0.03em;
+      line-height: 1.1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    #track-artist {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.65);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .art-placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: linear-gradient(145deg, #1a1a1a, #111);
+    }
+
+    .art-placeholder svg { opacity: 0.25; }
+
+    /* Single centered play button */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 36px;
+    }
+
+    .btn-play {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--pink);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 40px var(--pink-glow), 0 8px 24px rgba(0,0,0,0.5);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn-play:active {
+      transform: scale(0.93);
+      box-shadow: 0 0 16px var(--pink-glow);
+    }
+
+    #play-icon { margin-left: 4px; }
+
+    .loading-ring {
+      display: none;
+      width: 26px;
+      height: 26px;
+      border: 3px solid rgba(255,255,255,0.2);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .section-title {
+      font-size: 0.68rem;
+      font-weight: 500;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .recent-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 32px;
+    }
+
+    .recent-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      transition: background 0.2s;
+    }
+
+    .recent-item:hover { background: var(--surface); }
+
+    .recent-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 1.1rem;
+      color: var(--muted);
+      width: 18px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .recent-info { flex: 1; min-width: 0; }
+
+    .recent-track {
+      font-size: 0.88rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .recent-artist {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .recent-time {
+      font-size: 0.7rem;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.2);
+      padding-bottom: 6px;
+    }
+
+    .copyright {
+      text-align: center;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.12);
+      padding-bottom: 16px;
+    }
+
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 24px;
+      left: 20px;
+      right: 20px;
+      max-width: 420px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1px solid rgba(255,45,107,0.4);
+      border-radius: 16px;
+      padding: 16px 18px;
+      z-index: 100;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #install-banner.show { display: flex; animation: slideUp 0.4s ease; }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .banner-text { font-size: 0.9rem; font-weight: 500; }
+    .banner-sub { font-size: 0.78rem; color: var(--muted); }
+    .banner-actions { display: flex; gap: 10px; }
+
+    .btn-install {
+      flex: 1;
+      background: var(--pink);
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 0.85rem;
+      padding: 10px;
+      cursor: pointer;
+    }
+
+    .btn-dismiss {
+      background: var(--surface2);
+      border: none;
+      border-radius: 10px;
+      color: var(--muted);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.85rem;
+      padding: 10px 16px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <header class="header">
+    <div class="logo">
+      <img src="LOGO-IMAGE-LOCATION.png" alt="Logo" />
+    </div>
+    <div class="live-badge" id="live-badge">
+      <div class="live-dot"></div>
+      <span id="live-label">Press Play</span>
+    </div>
+  </header>
+
+  <div class="art-wrapper">
+    <div class="art-placeholder" id="art-placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.2">
+        <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+      </svg>
+    </div>
+    <img id="album-art" src="" alt="Album Art"
+      style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;" />
+    <div class="art-overlay">
+      <div class="now-playing-label">Now Playing</div>
+      <div id="track-title">Station Name</div>
+      <div id="track-artist">Slogan</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-play" id="play-btn" onclick="togglePlay()" aria-label="Play / Pause">
+      <svg id="play-icon" width="30" height="30" viewBox="0 0 24 24" fill="white">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      <svg id="pause-icon" width="30" height="30" viewBox="0 0 24 24" fill="white" style="display:none;">
+        <rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>
+      </svg>
+      <div class="loading-ring" id="loading-ring"></div>
+    </button>
+  </div>
+
+  <div class="section-title">Recently Played</div>
+  <div class="recent-list" id="recent-list">
+    <div style="color:var(--muted);font-size:0.82rem;padding:12px 14px;">Tune in to see recent tracks</div>
+  </div>
+
+  <div class="footer">Station Name · Station, LOC · website.com</div>
+  <div class="copyright">&copy; 2026 Your Station Company</div>
+
+</div>
+
+<!-- Install Banner -->
+<div id="install-banner">
+  <div>
+    <div class="banner-text">Add STATION NAME to your home screen</div>
+    <div class="banner-sub">Listen instantly, like a real app</div>
+  </div>
+  <div class="banner-actions">
+    <button class="btn-install" id="install-btn">Install</button>
+    <button class="btn-dismiss" onclick="dismissBanner()">Not now</button>
+  </div>
+</div>
+
+<audio id="audio" preload="none"></audio>
+
+<script>
+  const STREAM_URL     = 'https://azuracast.yoursite.com/listen/STATIONID/radio.mp3';
+  const METADATA_API   = 'https://azuracast.yoursite.com/api/nowplaying/STATIONID';
+  const METADATA_INTERVAL = 15000;
+
+  const audio         = document.getElementById('audio');
+  const playIcon      = document.getElementById('play-icon');
+  const pauseIcon     = document.getElementById('pause-icon');
+  const loadingRing   = document.getElementById('loading-ring');
+  const liveBadge     = document.getElementById('live-badge');
+  const liveLabel     = document.getElementById('live-label');
+  const trackTitle    = document.getElementById('track-title');
+  const trackArtist   = document.getElementById('track-artist');
+  const albumArt      = document.getElementById('album-art');
+  const artPlaceholder= document.getElementById('art-placeholder');
+  const recentList    = document.getElementById('recent-list');
+
+  let playing      = false;
+  let metaTimer    = null;
+  let recentTracks = [];
+  let currentArtwork = '';
+
+  audio.volume = 1.0;
+
+  // ── UI helpers ────────────────────────────────────────────────
+  function showLoading() {
+    playIcon.style.display   = 'none';
+    pauseIcon.style.display  = 'none';
+    loadingRing.style.display = 'block';
+  }
+  function showPlay() {
+    loadingRing.style.display = 'none';
+    pauseIcon.style.display   = 'none';
+    playIcon.style.display    = 'block';
+  }
+  function showPause() {
+    loadingRing.style.display = 'none';
+    playIcon.style.display    = 'none';
+    pauseIcon.style.display   = 'block';
+  }
+  function setOnAir(on) {
+    liveBadge.classList.toggle('on-air', on);
+    liveLabel.textContent = on ? 'ON AIR' : 'OFF AIR';
+  }
+
+  // ── Playback ──────────────────────────────────────────────────
+  function togglePlay() { playing ? stopStream() : startStream(); }
+
+  function startStream() {
+    showLoading();
+    audio.src = STREAM_URL;
+    audio.load();
+    audio.play().then(() => {
+      playing = true;
+      showPause();
+      setOnAir(true);
+      startMetaPolling();
+    }).catch(err => {
+      console.error('Playback error:', err);
+      showPlay();
+      setOnAir(false);
+    });
+  }
+
+  function stopStream() {
+    audio.pause();
+    audio.src = '';
+    playing = false;
+    showPlay();
+    setOnAir(false);
+    stopMetaPolling();
+    if ('mediaSession' in navigator) {
+      navigator.mediaSession.playbackState = 'paused';
+    }
+  }
+
+  audio.addEventListener('waiting', showLoading);
+  audio.addEventListener('playing', () => { showPause(); setOnAir(true); });
+  audio.addEventListener('error',   () => { showPlay();  setOnAir(false); playing = false; });
+
+  // ── Metadata polling ──────────────────────────────────────────
+  function startMetaPolling() {
+    fetchMeta();
+    metaTimer = setInterval(fetchMeta, METADATA_INTERVAL);
+  }
+  function stopMetaPolling() {
+    if (metaTimer) { clearInterval(metaTimer); metaTimer = null; }
+  }
+
+  async function fetchMeta() {
+    try {
+      const res  = await fetch(METADATA_API);
+      const data = await res.json();
+
+      const song    = data.now_playing?.song || {};
+      const title   = song.title  || '';
+      const artist  = song.artist || '';
+      const artwork = song.art    || data.station?.art || '';
+
+      // AzuraCast provides full history — use it directly
+      recentTracks = (data.song_history || []).slice(0, 7).map(h => ({
+        title:  h.song?.title  || '',
+        artist: h.song?.artist || '',
+        time:   new Date(h.played_at * 1000)
+      }));
+
+      updateTrack({ title, artist, artwork });
+      renderRecent();
+    } catch (e) { /* silent */ }
+  }
+
+  function updateTrack({ title, artist, artwork }) {
+    if (!title && !artist) return;
+
+    trackTitle.textContent  = title  || '103.7 KISS FM';
+    trackArtist.textContent = artist || "Nova Scotia's #1 Hit Music Station";
+
+    if (artwork && artwork !== currentArtwork) {
+      currentArtwork = artwork;
+      albumArt.src = artwork;
+      albumArt.style.display    = 'block';
+      artPlaceholder.style.display = 'none';
+    }
+
+    updateMediaSession(title, artist, artwork);
+  }
+
+  // ── Media Session API — lock screen / notification controls ───
+  function updateMediaSession(title, artist, artwork) {
+    if (!('mediaSession' in navigator)) return;
+
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title:  title  || '103.7 KISS FM',
+      artist: artist || 'Nova Scotia',
+      album:  'KISS FM NS — Live Radio',
+      artwork: artwork
+        ? [{ src: artwork, sizes: '512x512', type: 'image/jpeg' }]
+        : [{ src: 'https://stevensonmediagroup.ca/radioapp/icon-512.png', sizes: '512x512', type: 'image/png' }]
+    });
+
+    navigator.mediaSession.playbackState = playing ? 'playing' : 'paused';
+
+    // Wire lock-screen transport buttons to stream play/pause
+    navigator.mediaSession.setActionHandler('play',  () => { if (!playing) startStream(); });
+    navigator.mediaSession.setActionHandler('pause', () => { if (playing)  stopStream();  });
+    navigator.mediaSession.setActionHandler('stop',  () => { if (playing)  stopStream();  });
+
+    // Disable seek/skip — live radio has no timeline
+    ['seekbackward','seekforward','previoustrack','nexttrack'].forEach(a => {
+      try { navigator.mediaSession.setActionHandler(a, null); } catch(_) {}
+    });
+  }
+
+  // ── Recently Played ───────────────────────────────────────────
+  function renderRecent() {
+    if (!recentTracks.length) return;
+    recentList.innerHTML = recentTracks.slice(0, 6).map((t, i) => {
+      const min     = Math.floor((Date.now() - t.time) / 60000);
+      const timeStr = i === 0 ? 'Just now' : min < 60 ? `${min}m ago` : `${Math.floor(min/60)}h ago`;
+      return `<div class="recent-item">
+        <div class="recent-num">${i + 1}</div>
+        <div class="recent-info">
+          <div class="recent-track">${esc(t.title)}</div>
+          <div class="recent-artist">${esc(t.artist)}</div>
+        </div>
+        <div class="recent-time">${timeStr}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── PWA Install ───────────────────────────────────────────────
+  let deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('install-banner').classList.add('show');
+  });
+
+  document.getElementById('install-btn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    dismissBanner();
+  });
+
+  function dismissBanner() {
+    document.getElementById('install-banner').classList.remove('show');
+  }
+
+  // ── Service Worker ────────────────────────────────────────────
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(console.warn);
+  }
+
+  // Load now-playing info on page open (before pressing play)
+  fetchMeta();
+</script>
+</body>
+</html>
