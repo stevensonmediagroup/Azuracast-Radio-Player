@@ -1,0 +1,28 @@
+{
+  "name": "STATION NAME HERE",
+  "short_name": "STATIONNAME",
+  "description": "description description description.",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d0d0d",
+  "theme_color": "#0d0d0d",
+  "categories": ["music", "entertainment"],
+  "icons": [
+    {
+      "src": "ICONLINK-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "ICONLINK-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "share_target": null
+}
