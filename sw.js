@@ -1,4 +1,4 @@
-// KISS FM NS — Service Worker
+// Player — Service Worker
 // Caches the app shell for instant load; audio stream is always fetched live.
 
 const CACHE_NAME = 'smg-radio-player-v1';
