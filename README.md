@@ -1,5 +1,6 @@
 # Azuracast Radio Player
-Player for Azuracast radio stations. In HTML with included PWA.
+Player for Azuracast radio stations. 
+In HTML with included PWA and mediahandler.
 
 ### Beautiful, modern and completely compatable with all devices.
 
